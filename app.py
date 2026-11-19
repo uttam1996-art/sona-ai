@@ -21,7 +21,6 @@ Katha haba niyama:
 """
 
 async def make_female_voice(text):
-    # SwaraNeural - Natural Indian Female Voice
     communicate = edge_tts.Communicate(text, "hi-IN-SwaraNeural", rate="+5%", pitch="+5Hz")
     audio_bytes = b""
     async for chunk in communicate.stream():
@@ -41,7 +40,7 @@ def chat():
     user_msg = data.get("message", "")
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.8-flash",
             contents=user_msg,
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_PROMPT,
