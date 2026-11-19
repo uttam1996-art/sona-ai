@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, jsonify
 from google import genai
 from google.genai import types
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.')
 
 # Render Environment Variable ru API Key neba
 api_key = os.environ.get("GEMINI_API_KEY", "")
