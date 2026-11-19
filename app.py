@@ -1,11 +1,13 @@
 import os
+import asyncio
+import base64
+import edge_tts
 from flask import Flask, render_template, request, jsonify
 from google import genai
 from google.genai import types
 
 app = Flask(__name__, template_folder='.')
 
-# Render Environment Variable ru API Key neba
 api_key = os.environ.get("GEMINI_API_KEY", "")
 client = genai.Client(api_key=api_key) if api_key else None
 
@@ -15,8 +17,17 @@ Katha haba niyama:
 1. Tume kebala shuddha gaunli Odia (ଗାଉଁଲି ଓଡ଼ିଆ - jemiti "Juhar bhai", "Kana khabar", "Chinta karani") kimba desi Hindi (देसी हिंदी - jemiti "Are bhaiya", "Ka hal ba") re uttara deba.
 2. Bahut warm, friendly, au helper bhali katha haba. Beshi bookish ba formal bhasa byabahara karibani.
 3. Jadi user English akhyara re Odia/Hindi lekhibe (jemiti 'kemiti acha' ba 'ka hal ba'), tume Odia/Hindi script re uttara deba jaha voice re bhala sunajiba.
-4. Uttara chhota au spashta rakhiha (2-4 dhadhi), jaha dwara voice assistant bhali katha habaku sahaj heba.
+4. Uttara chhota au spashta rakhiha (2-3 dhadhi), jaha dwara voice assistant bhali katha habaku sahaj heba.
 """
+
+async def make_female_voice(text):
+    # SwaraNeural - Natural Indian Female Voice
+    communicate = edge_tts.Communicate(text, "hi-IN-SwaraNeural", rate="+5%", pitch="+5Hz")
+    audio_bytes = b""
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            audio_bytes += chunk["data"]
+    return base64.b64encode(audio_bytes).decode("utf-8")
 
 @app.route("/")
 def home():
@@ -37,7 +48,9 @@ def chat():
                 temperature=0.7
             )
         )
-        return jsonify({"reply": response.text})
+        reply_text = response.text
+        audio_b64 = asyncio.run(make_female_voice(reply_text))
+        return jsonify({"reply": reply_text, "audio": audio_b64})
     except Exception as e:
         return jsonify({"reply": f"Kichi technical asubidha hela bhai: {str(e)}"})
 
